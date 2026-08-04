@@ -1,0 +1,45 @@
+name: Mirror Framer Site
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  download-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Static Site
+        run: |
+          mkdir _site
+          wget --mirror \
+               --page-requisites \
+               --adjust-extension \
+               --no-parent \
+               --convert-links \
+               --directory-prefix=_site \
+               --no-host-directories \
+               https://azrendor.framer.website/
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+a
